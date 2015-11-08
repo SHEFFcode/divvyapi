@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style type="text/css">
+    html, body { height: 100%; margin: 0; padding: 0; }
+    #map { height: 400px; width: 500px; }
+  </style>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC08fkRTVYstrV1ea4O0STDwC8tFwVYEH8&callback=initMap&callback=initMap"></script>
+</head>
+<body>
+  <div id="map"></div>
+  <input id="prefer_bikes" type="radio" name="prefer" value="bikes" onClick="updateToggles(this);"/>
+  <label for="prefer_bikes">Only show stations with available bikes</label><br/>
+  <input id="prefer_docks" type="radio" name="prefer" value="docks" onClick="updateToggles(this);"/>
+  <label for="prefer_docks">Only show stations with available docks</label><br/>
+  <input id="prefer_all" type="radio" name="prefer" value="all" onClick="updateToggles(this);" checked/>
+  <label for="prefer_all">Show all stations</label>
+
+  <script type="text/javascript">
+    /* Global Variables */
+    var map;
+    var marker;
+    var mrkr0;
+    var mrkr1;
+    var mrkr2;
+    var mrkr3;
+    var mrkr4;
+    var markers = [];
+    infowindowNameArray = [];
+    infowindows = [];
+
+    /*Map Init Function*/
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 41.8826, lng: -87.6506},
+        zoom: 13
+      });
+
+      /* Map click event listener */
+      google.maps.event.addListener(map, 'click', function(event) {
+
+        //Create an initial touch location marker.
+        marker = new google.maps.Marker({position: event.latLng, map: map, title: 'Divvy'});
+        console.log(event.latLng.lat(), event.latLng.lng());
+
+        //Add a click listener to the initial touch location marker.
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+
+        //Bike preference.
+        var prefer = null;
+        function updateToggles(radio) {
+          if (radio.value === "all") {
+            prefer = null;
+          } else {
+            prefer = radio.value;
+          }
+        }
+
+        //Create an xml request for bike locations.
+        var xhrequest = new XMLHttpRequest();
+        var url= "http://shrouded-beach-2183.herokuapp.com/stations/nearby?lat="+ event.latLng.lat()+"&lon="+event.latLng.lng();
+        if (prefer) {
+          url += "&prefer="+prefer;
+        }
+
+        //Function that defines the readystate of the xml request.
+        xhrequest.onreadystatechange = function() {
+          if (xhrequest.readyState == 4) {
+            if (xhrequest.status == 200) {
+              var layerItems =  JSON.parse(xhrequest.responseText);
+
+              console.log(layerItems);
+
+              //Set Variables related to the station markers.
+              var latArray = [];
+              var lngArray = [];
+              var mrkrArray = [];
+              var latitudeNameArray = [];
+              var longitudeNameArray = [];
+              var myLatLngArray = [];
+
+              //Pupulate the station markers.
+              for (i=0; i<layerItems.length; i++){
+                lngArray.push(layerItems[i].geometry.coordinates[0]);
+                latArray.push(layerItems[i].geometry.coordinates[1]);
+                mrkrArray.push('mrkr' + String(i));
+                latitudeNameArray.push("latitude" + String(i));
+                longitudeNameArray.push("longitude" + String(i));
+                myLatLngArray.push('myLatLang' + String(i));
+
+                latitudeNameArray[i] = latArray[i];
+                longitudeNameArray[i] = lngArray[i];
+
+                myLatLngArray[i] = {lat: latArray[i], lng: lngArray[i]};
+
+                mrkrArray[i] = new google.maps.Marker({position: myLatLngArray[i], map:map, title: 'new'});
+
+                markers.push(mrkrArray[i]);
+
+              //Create an info window.
+              var contentString = '<div id="content">'+
+              '<div id="siteNotice">'+
+              '</div>'+
+              '<h1 id="firstHeading" class="firstHeading">' + 'Station1' + '</h1>'+
+              '<div id="bodyContent">'+
+              '<p><b>' + layerItems[i].properties.stationName + '</b>'+'</div>'+
+              '</div>';
+
+              //Create a variable name array for the info windows.
+              infowindowNameArray.push('infowindow' + String(i));
+
+              //Create info windows.
+              infowindowNameArray[i] = new google.maps.InfoWindow({
+                content: contentString
+              });
+              infowindows.push(infowindowNameArray[i]);
+
+
+              if (i === 0){
+                mrkrArray[0].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                  }
+                  infowindows[0].open(map, mrkrArray[0]);
+                });
+              }
+
+              if(i === 1){
+                mrkrArray[1].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                  }
+                  infowindows[1].open(map, mrkrArray[1]);
+                });
+              }
+
+              if (i===2){
+                mrkrArray[2].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                  }
+                  infowindows[2].open(map, mrkrArray[2]);
+                });
+              }
+
+              if (i===3){
+                mrkrArray[3].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                  }
+                  infowindows[3].open(map, mrkrArray[3]);
+                });
+              }
+
+              if(i===4){
+                mrkrArray[4].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                  }
+                  infowindows[4].open(map, mrkrArray[4]);
+                });
+              }
+            } //pupulate station markers
+          } //request successful 
+        } //request ready
+      } //request function
+    }); // add listener to the map
+
+    //open and send the xml request
+    xhrequest.open('GET', url, true);
+    xhrequest.send(null);
+
+    //Clear our the initial location marker.
+    if(marker){
+      marker.setMap(null);
+    }
+      //Clear out the station markers.
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+      }
+      //flush out all the marker and window arrays.
+      markers = [];
+      infowindows = [];
+    };//end of map init
+      //Street View
+      var astorPlace = {lat: 40.729884, lng: -73.990988};
+      panorama = map.getStreetView();
+      panorama.setPosition(astorPlace);
+      panorama.setPov(/** @type {google.maps.StreetViewPov} */({
+        heading: 265,
+        pitch: 0
+      }));
+      panorama.setVisible(true);
+
+      console.log("%c" + 'hireMe();', "color:" + '#BADA55' + "; font-weight:bold; font-size: 24px");
+      function hireMe(){
+        alert('Thanks for experssing interest!');
+      }
+
+
+    </script>
+
+  </body>
+  </html>

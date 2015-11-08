@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Divvy Google API</title>
+  <style type="text/css">
+    html, body { height: 100%; margin: 0; padding: 0; }
+    #map { height: 400px; width: 500px; }
+  </style>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC08fkRTVYstrV1ea4O0STDwC8tFwVYEH8&callback=initMap&callback=initMap"></script>
+</head>
+<body>
+  <!-- html -->
+  <div id="map"></div>
+  <input id="prefer_bikes" type="radio" name="prefer" value="bikes" onClick="updateToggles(this);"/>
+  <label for="prefer_bikes">Only show stations with available bikes</label><br/>
+  <input id="prefer_docks" type="radio" name="prefer" value="docks" onClick="updateToggles(this);"/>
+  <label for="prefer_docks">Only show stations with available docks</label><br/>
+  <input id="prefer_all" type="radio" name="prefer" value="all" onClick="updateToggles(this);" checked/>
+  <label for="prefer_all">Show all stations</label>
+
+  <!-- Javascript -->
+  <script>
+    /* Global Variables */
+    var map;
+    var marker;
+    var mrkr0;
+    var mrkr1;
+    var mrkr2;
+    var mrkr3;
+    var mrkr4;
+    var markers = [];
+    infowindowNameArray = [];
+    infowindows = [];
+
+    /* Preference Function */
+    //Bike preference.
+    var prefer = null;
+    function updateToggles(radio) {
+      if (radio.value === "all") {
+        prefer = null;
+      } else {
+        prefer = radio.value;
+      }
+    }
+
+    /*Map Init Function*/
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: 41.8826, lng: -87.6506},
+        zoom: 13
+      });
+      /* Map click event listener */
+      google.maps.event.addListener(map, 'click', function(event) {
+        //Create an initial touch location marker.
+        marker = new google.maps.Marker({position: event.latLng, map: map, title: 'Divvy'});
+        console.log(event.latLng.lat(), event.latLng.lng());
+        //Add a click listener to the initial touch location marker.
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+        //Create an xml request for bike locations.
+        var xhrequest = new XMLHttpRequest();
+        var url= "http://shrouded-beach-2183.herokuapp.com/stations/nearby?lat="+ event.latLng.lat()+"&lon="+event.latLng.lng();
+        if (prefer) {
+          url += "&prefer="+prefer;
+        }
+
+        //Function that defines the readystate of the xml request.
+        xhrequest.onreadystatechange = function() {
+          if (xhrequest.readyState == 4) {
+            if (xhrequest.status == 200) {
+              var layerItems =  JSON.parse(xhrequest.responseText);
+
+              console.log(layerItems);
+
+            //Set Variables related to the station markers.
+            var latArray = [];
+            var lngArray = [];
+            var mrkrArray = [];
+            var latitudeNameArray = [];
+            var longitudeNameArray = [];
+            var myLatLngArray = [];
+            var panoramaNameArray = [];
+            var astorPlaceNameArray = [];
+
+            //Pupulate the station markers.
+            for (i=0; i<layerItems.length; i++){
+              lngArray.push(layerItems[i].geometry.coordinates[0]);
+              latArray.push(layerItems[i].geometry.coordinates[1]);
+              mrkrArray.push('mrkr' + String(i));
+              latitudeNameArray.push('latitude' + String(i));
+              longitudeNameArray.push('longitude' + String(i));
+              myLatLngArray.push('myLatLang' + String(i));
+              panoramaNameArray.push('panorama' + String(i));
+              astorPlaceNameArray.push('astorPlace' + String(i));
+
+
+              latitudeNameArray[i] = latArray[i];
+              longitudeNameArray[i] = lngArray[i];
+
+              myLatLngArray[i] = {lat: latArray[i], lng: lngArray[i]};
+              //Street View
+              astorPlaceNameArray[i] = myLatLngArray[i];
+              panoramaNameArray[i] = map.getStreetView();
+              panoramaNameArray[i].setPosition(astorPlaceNameArray[i]);
+              panoramaNameArray[i].setPov(/** @type {google.maps.StreetViewPov} */({
+                heading: 265,
+                pitch: 0
+              })); 
+
+
+              // End Street View
+
+              mrkrArray[i] = new google.maps.Marker({position: myLatLngArray[i], map:map, title: 'new'});
+
+              markers.push(mrkrArray[i]);
+
+              //Create an info window.
+              var contentString = 
+              '<div id="content">'+
+              '<div id="siteNotice">'+
+              '</div>'+
+              '<h1 id="firstHeading" class="firstHeading">' + layerItems[i].properties.stationName + '</h1>'+
+              '<div id="bodyContent">'+
+              '<p><b>' + 'available bikes: ' + layerItems[i].properties.availableBikes + '</b></p>' +
+              '<p><b>' + 'available docks: ' + layerItems[i].properties.availableDocks + '</b></p>' +
+              '<p><b>' + '<button id="street' + String(i) + '"' + 'class="closed">Street View</button>' + '</b></p>' +
+              '</div>'+
+              '</div>';
+
+              console.log(String(i));
+
+              //Create a variable name array for the info windows.
+              infowindowNameArray.push('infowindow' + String(i));
+
+              //Create info windows.
+              infowindowNameArray[i] = new google.maps.InfoWindow({
+                content: contentString
+              });
+              infowindows.push(infowindowNameArray[i]);
+
+              if (i === 0){
+                mrkrArray[0].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                    panoramaNameArray[i].setVisible(false);
+                  }
+                  infowindows[0].open(map, mrkrArray[0]);
+                  document.getElementById('street0').addEventListener('click', function(){
+                    if(document.getElementById('street0').classList.contains('closed')){
+                      panoramaNameArray[0].setVisible(true);
+                      document.getElementById('street0').classList.remove('closed');
+                    } else {
+                      panoramaNameArray[0].setVisible(false);
+                      document.getElementById('street0').classList.add('closed');
+                    }
+                    document.getElementById('street0').classList.add('closed');
+                  });
+                });
+              }
+
+              if(i === 1){
+                mrkrArray[1].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                    panoramaNameArray[i].setVisible(false);
+                  }
+                  infowindows[1].open(map, mrkrArray[1]);
+                  document.getElementById('street1').addEventListener('click', function(){
+                    if(document.getElementById('street1').classList.contains('closed')){
+                      panoramaNameArray[1].setVisible(true);
+                      document.getElementById('street1').classList.remove('closed');
+                    } else {
+                      panoramaNameArray[1].setVisible(false);
+                      document.getElementById('street1').classList.add('closed');
+                    }
+                    document.getElementById('street1').classList.add('closed');
+                  });
+                });
+              }
+
+              if (i===2){
+                mrkrArray[2].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                    panoramaNameArray[i].setVisible(false);
+                  }
+                  infowindows[2].open(map, mrkrArray[2]);
+                  document.getElementById('street2').addEventListener('click', function(){
+                    if(document.getElementById('street2').classList.contains('closed')){
+                      panoramaNameArray[2].setVisible(true);
+                      document.getElementById('street2').classList.remove('closed');
+                    } else {
+                      panoramaNameArray[2].setVisible(false);
+                      document.getElementById('street2').classList.add('closed');
+                    }
+                    document.getElementById('street2').classList.add('closed');
+                  });
+                });
+              }
+
+              if (i===3){
+                mrkrArray[3].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                    panoramaNameArray[i].setVisible(false);
+                  }
+                  infowindows[3].open(map, mrkrArray[3]);
+                  document.getElementById('street3').addEventListener('click', function(){
+                    if(document.getElementById('street3').classList.contains('closed')){
+                      panoramaNameArray[3].setVisible(true);
+                      document.getElementById('street3').classList.remove('closed');
+                    } else {
+                      panoramaNameArray[3].setVisible(false);
+                      document.getElementById('street3').classList.add('closed');
+                    }
+                    document.getElementById('street3').classList.add('closed');
+                  });
+                });
+              }
+
+              if(i===4){
+                mrkrArray[4].addListener('click', function(){
+                  for (i=0; i < 5; i++){
+                    infowindows[i].close();
+                    panoramaNameArray[i].setVisible(false);
+                  }
+                  infowindows[4].open(map, mrkrArray[4]);
+                  document.getElementById('street4').addEventListener('click', function(){
+                    if(document.getElementById('street4').classList.contains('closed')){
+                      panoramaNameArray[4].setVisible(true);
+                      document.getElementById('street4').classList.remove('closed');
+                    } else {
+                      panoramaNameArray[4].setVisible(false);
+                      document.getElementById('street4').classList.add('closed');
+                    }
+                    document.getElementById('street4').classList.add('closed');
+                  });
+                });
+              }
+            } //pupulate station markers
+          } //request successful 
+        } //request ready
+      } //request function
+      //open and send the xml request
+      xhrequest.open('GET', url, true);
+      xhrequest.send(null);
+
+      //Clear our the initial location marker.
+      if(marker){
+        marker.setMap(null);
+      }
+      //Clear out the station markers.
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+      }
+      //flush out all the marker and window arrays.
+      markers = [];
+      infowindows = [];
+      
+    });//End add listener
+  }//End map init
+
+  console.log("%c" + 'hireMe();', "color:" + '#BADA55' + "; font-weight:bold; font-size: 24px");
+  function hireMe(){
+    alert('Thanks for experssing interest!');
+  }
+
+</script>
+
+</body>
+</html>
