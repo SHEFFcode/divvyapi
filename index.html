@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
   <title>Divvy Google API</title>
   <style type="text/css">
     html, body { height: 100%; margin: 0; padding: 0; }
@@ -55,6 +56,9 @@
         center: {lat: 41.8826, lng: -87.6506},
         zoom: 13
       });
+
+      // var bikeLayer = new google.maps.BicyclingLayer();
+      // bikeLayer.setMap(map);
       /* Map click event listener */
       google.maps.event.addListener(map, 'click', function(event) {
         //Create an initial touch location marker.
@@ -125,7 +129,7 @@
               '<div id="content">'+
               '<div id="siteNotice">'+
               '</div>'+
-              '<h1 id="firstHeading" class="firstHeading">' + layerItems[i].properties.stationName + '</h1>'+
+              '<h3 id="firstHeading" class="firstHeading">' + layerItems[i].properties.stationName + '</h3>'+
               '<div id="bodyContent">'+
               '<p><b>' + 'available bikes: ' + layerItems[i].properties.availableBikes + '</b></p>' +
               '<p><b>' + 'available docks: ' + layerItems[i].properties.availableDocks + '</b></p>' +
