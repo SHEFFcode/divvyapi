@@ -8,6 +8,12 @@
     #map { height: 400px; width: 500px; }
   </style>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC08fkRTVYstrV1ea4O0STDwC8tFwVYEH8&callback=initMap&callback=initMap"></script>
+  <style>
+    #map{
+      width: 100%;
+      height: 50%;
+    }
+  </style>
 </head>
 <body>
   <!-- html -->
@@ -18,7 +24,6 @@
   <label for="prefer_docks">Only show stations with available docks</label><br/>
   <input id="prefer_all" type="radio" name="prefer" value="all" onClick="updateToggles(this);" checked/>
   <label for="prefer_all">Show all stations</label>
-
   <!-- Javascript -->
   <script>
     /* Global Variables */
@@ -109,49 +114,10 @@
                 heading: 265,
                 pitch: 0
               })); 
-
-              /*Testing the object framework*/
-
-              // astorPlace1 = myLatLngArray[1];
-              // var panorama1 = new google.maps.StreetViewPanorama(document.getElementById('map'),{
-              //   position: myLatLngArray[1],
-              //   pov: {
-              //     heading: 34,
-              //     pitch: 10
-              //   }
-              // });
-              // astorPlace2 = myLatLngArray[2];
-              // var panorama2 = new google.maps.StreetViewPanorama(document.getElementById('map'),{
-              //   position: myLatLngArray[2],
-              //   pov: {
-              //     heading: 34,
-              //     pitch: 10
-              //   }
-              // });
-              // astorPlace3 = myLatLngArray[3];
-              // var panorama3 = new google.maps.StreetViewPanorama(document.getElementById('map'),{
-              //   position: myLatLngArray[3],
-              //   pov: {
-              //     heading: 34,
-              //     pitch: 10
-              //   }
-              // });
-              // astorPlace4 = myLatLngArray[4];
-              // panorama4 = map.getStreetView();
-              // var panorama4 = new google.maps.StreetViewPanorama(document.getElementById('map'), {
-              //   position: myLatLngArray[4],
-              //   pov: {
-              //     heading: 34,
-              //     pitch: 10
-              //   }
-              // });
-
-
-
               // End Street View
 
               //Create a marker array with location of divvy stations.
-              mrkrArray[i] = new google.maps.Marker({position: myLatLngArray[i], map:map, title: 'new'});
+              mrkrArray[i] = new google.maps.Marker({position: myLatLngArray[i], map:map, title: 'divvy', icon: 'http://www.sheffmachine.com/divvyapi/cycling.png'});
               markers.push(mrkrArray[i]);
 
               //Create an info window.
@@ -189,7 +155,7 @@
                         position: myLatLngArray[0],
                         pov: {
                           heading: 34,
-                          pitch: 10
+                          pitch: 0
                         },
                         enableCloseButton: true
                       });
@@ -216,7 +182,7 @@ if(i === 1){
           position: myLatLngArray[1],
           pov: {
             heading: 34,
-            pitch: 10
+            pitch: 0
           },
           enableCloseButton: true
         });
@@ -243,7 +209,7 @@ if (i===2){
           position: myLatLngArray[2],
           pov: {
             heading: 34,
-            pitch: 10
+            pitch: 0
           },
           enableCloseButton: true
         });
@@ -270,7 +236,7 @@ if (i===3){
           position: myLatLngArray[3],
           pov: {
             heading: 34,
-            pitch: 10
+            pitch: 0
           },
           enableCloseButton: true
         });
@@ -297,7 +263,7 @@ if(i===4){
           position: myLatLngArray[4],
           pov: {
             heading: 34,
-            pitch: 10
+            pitch: 0
           },
           enableCloseButton: true
         });
